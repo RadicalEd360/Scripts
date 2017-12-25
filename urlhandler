@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+import sys, os
+from subprocess import Popen
+
+
+# programs
+browser='firefox'
+
+youtube='mpv2'
+crunchyroll='streamlink --default-stream=best'
+
+img_viewer='feh -FB black'
+gif_viewer='eom'
+video_player='mpv2'
+
+torrent_client='/usr/bin/transmission-remote'
+
+def usage():
+	print('Usage: '+__file__+' http://www.url.goes/here.ext')
+	print('  set your default programs in here - '+os.path.realpath(__file__))
+
+
+def process(url):
+	# check if a crunchyroll link
+	if 'crunchyroll' in url: return('crunchyroll')
+	# check if a youtube link
+	if 'youtube' in url.lower() or 'youtu.be' in url: return('youtube')
+
+	# check if the url has a path, if so, see if last part has an extension, if not return browser
+	if '/' in url:
+		lastslash=url.rsplit('/',1) # rsplit splits and returns a list so 'http://asdf.com/file.ext'.rsplit('/',1) becomes ['http://asdf.com','file.ext']
+		if '.' in lastslash[1]:
+			ext=lastslash[1].rsplit('.',1)
+			return(ext[1])
+		else:
+			return('browser')
+	else:
+		return('browser')
+
+def find_prog(type):
+	filetypes = {   'crunchyroll': crunchyroll,
+			'youtube'    : youtube,
+			'mp4'        : video_player,
+			'm4a'        : video_player,
+			'webm'       : video_player,
+			'gif'        : gif_viewer,
+			'gifv'       : browser,
+			'png'        : img_viewer,
+			'jpg'        : img_viewer,
+			'jpeg'       : img_viewer,
+			'browser'    : browser
+			}
+	result = filetypes.get(type.lower(), browser)
+	return(result)
+
+def main():
+	if len(sys.argv) == 2:
+		url=sys.argv[1]
+		urltype=process(url)
+		# find a command, then format it to a list object so popen can use it
+		command=find_prog(urltype).split()
+		# add the url to the command
+		command.append(url)
+		# launch command in background and pipe stdout and stderr to /dev/null
+		Popen(command, stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+	else:
+		usage()
+		return(1)
+
+if __name__ == "__main__":
+	main()

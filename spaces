@@ -1,0 +1,40 @@
+#!/bin/bash
+function dir {
+	for i in $(ls | grep ' ' | sed 's/ /SPACE123/g')
+	do
+		mv "$(echo $i | sed 's/SPACE123/ /g')" "$(echo $i | sed 's/SPACE123/_/g')"
+	done
+}
+function tree {
+	level=1
+	while [ $level -le $1 ]
+	do
+		for i in $(find . | grep ' ' | sed 's/ /SPACE123/g')
+	        do
+	                mv "$(echo $i | sed 's/SPACE123/ /g')" "$(echo $i | sed 's/SPACE123/_/g')" 2> /dev/null
+	        done
+		echo -n "$level "
+		level=$(($level+1))
+	done
+		echo ""
+}
+if [ "$1" == "d" ]
+then
+	echo "processing the current directory"
+	dir
+	exit
+fi
+if [ "$1" == "t" ]
+then
+	if [ "a$2" == "a" ]
+	then
+		levels="5"
+	else
+		levels="$2"
+	fi
+	echo "processing $levels levels of current directory tree"
+	tree $levels
+	exit
+fi
+echo "usage: $0 d (directory) || t {levels} (tree and how many levels of tree to process default = 5)"
+exit
